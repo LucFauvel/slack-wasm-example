@@ -46,13 +46,8 @@ const inputForm = SampleWorkflow.addStep(
         title: "Channel to send message to",
         type: Schema.slack.types.channel_id,
         default: SampleWorkflow.inputs.channel,
-      }, {
-        name: "message",
-        title: "Message",
-        type: Schema.types.string,
-        long: true,
       }],
-      required: ["channel", "message"],
+      required: ["channel"]
     },
   },
 );
@@ -65,7 +60,6 @@ const inputForm = SampleWorkflow.addStep(
  * https://api.slack.com/automation/functions/custom
  */
 const sampleFunctionStep = SampleWorkflow.addStep(SampleFunctionDefinition, {
-  message: inputForm.outputs.fields.message,
   user: SampleWorkflow.inputs.user,
 });
 

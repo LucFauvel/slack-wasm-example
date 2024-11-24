@@ -3,11 +3,6 @@ mod utils;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-extern "C" {
-    fn alert(s: &str);
-}
-
-#[wasm_bindgen]
-pub fn greet() {
-    alert("Hello, slack-wasm-example!");
+pub fn greet(name: Option<String>) -> String {
+    format!("Hello from Rust, {}!", name.unwrap_or_default())
 }

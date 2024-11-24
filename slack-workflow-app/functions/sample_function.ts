@@ -1,5 +1,5 @@
 import { DefineFunction, Schema, SlackFunction } from "deno-slack-sdk/mod.ts";
-import SampleObjectDatastore from "../datastores/sample_datastore.ts";
+import init, { greet } from "wasm-lib";
 
 /**
  * Functions are reusable building blocks of automation that accept
@@ -14,16 +14,12 @@ export const SampleFunctionDefinition = DefineFunction({
   source_file: "functions/sample_function.ts",
   input_parameters: {
     properties: {
-      message: {
-        type: Schema.types.string,
-        description: "Message to be posted",
-      },
       user: {
         type: Schema.slack.types.user_id,
         description: "The user invoking the workflow",
       },
     },
-    required: ["message", "user"],
+    required: ["user"],
   },
   output_parameters: {
     properties: {
@@ -45,34 +41,8 @@ export const SampleFunctionDefinition = DefineFunction({
 export default SlackFunction(
   SampleFunctionDefinition,
   async ({ inputs, client }) => {
-    const uuid = crypto.randomUUID();
-
-    // inputs.user is set from the interactivity_context defined in sample_trigger.ts
-    // https://api.slack.com/automation/forms#add-interactivity
-    const updatedMsg = `:wave: ` + `<@${inputs.user}>` +
-      ` submitted the following message: \n\n>${inputs.message}`;
-
-    const sampleObject = {
-      original_msg: inputs.message,
-      updated_msg: updatedMsg,
-      object_id: uuid,
-    };
-
-    // Save the sample object to the datastore
-    // https://api.slack.com/automation/datastores
-    const putResponse = await client.apps.datastore.put<
-      typeof SampleObjectDatastore.definition
-    >({
-      datastore: "SampleObjects",
-      item: sampleObject,
-    });
-
-    if (!putResponse.ok) {
-      return {
-        error: `Failed to put item into the datastore: ${putResponse.error}`,
-      };
-    }
-
-    return { outputs: { updatedMsg } };
+    await init("https://github.com/LucFauvel/slack-wasm-example/wasm-lib/pkg/slack_wasm_example_bg.wasm");
+    const userProfile = await client.users.profile.get({ user: inputs.user });
+    return { outputs: { updatedMsg: greet(userProfile?.profile?.display_name) } };
   },
 );
